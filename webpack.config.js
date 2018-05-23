@@ -25,7 +25,18 @@ module.exports = {
                     /elm-stuff/,
                     /node_modules/
                 ],
-                use: 'elm-webpack-loader'
+                use: [
+                    {
+                        loader: 'elm-hot-loader'
+                    },
+                    {
+                        loader: 'elm-webpack-loader',
+                        options: {
+                            warn: true,
+                            debug: true
+                        }
+                    }
+                ]
             }
         ]
     },

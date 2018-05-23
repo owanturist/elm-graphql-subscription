@@ -1,1 +1,5 @@
-console.log('hello')
+import {
+    Main
+} from './Main.elm';
+
+Main.fullscreen();
