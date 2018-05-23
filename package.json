@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "webpack-dev-server --hot --inline --port=3000"
   },
   "repository": {
     "type": "git",
@@ -15,5 +15,15 @@
   "bugs": {
     "url": "https://github.com/owanturist/elm-graphql-subscription/issues"
   },
-  "homepage": "https://github.com/owanturist/elm-graphql-subscription#readme"
+  "homepage": "https://github.com/owanturist/elm-graphql-subscription#readme",
+  "dependencies": {
+    "json-graphql-server": "^2.1.1"
+  },
+  "devDependencies": {
+    "elm-webpack-loader": "^4.5.0",
+    "html-webpack-plugin": "^3.2.0",
+    "webpack": "^4.8.3",
+    "webpack-cli": "^2.1.3",
+    "webpack-dev-server": "^3.1.4"
+  }
 }
