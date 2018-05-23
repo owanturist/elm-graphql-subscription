@@ -28,7 +28,9 @@ initial =
       , creating = NotAsked
       , count = 0
       }
-    , Http.send LoadDone Store.getCounters
+    , Cmd.batch
+        [ Http.send LoadDone Store.getCounters
+        ]
     )
 
 
@@ -39,6 +41,7 @@ initial =
 type Msg
     = Load
     | LoadDone (Result Http.Error (List Counter))
+    | Subscribes (Result Http.Error String)
     | ChangeCount String
     | Create
     | CreateDone (Result Http.Error Counter)
@@ -57,6 +60,13 @@ update msg model =
             ( { model | entities = RemoteData.fromResult result }
             , Cmd.none
             )
+
+        Subscribes result ->
+            let
+                log =
+                    Debug.log "Subscribes" (toString result)
+            in
+            ( model, Cmd.none )
 
         ChangeCount nextCount ->
             ( { model | count = Result.withDefault 0 (String.toInt nextCount) }

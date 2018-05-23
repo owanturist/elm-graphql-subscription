@@ -8,6 +8,7 @@ module Store
         , extractID
         , getCounter
         , getCounters
+        , subscribe
         , toCount
         , updateCounter
         )
@@ -208,6 +209,33 @@ deleteCounter (ID coutnerId) =
         , expect =
             Decode.bool
                 |> Decode.at [ "data", "deleted" ]
+                |> Http.expectJson
+        , timeout = Nothing
+        , withCredentials = False
+        }
+
+
+subscribe : Http.Request String
+subscribe =
+    Http.request
+        { method = "POST"
+        , headers = []
+        , url = "http://localhost:3000/graphql"
+        , body =
+            [ ( "query"
+              , """
+                subscription Subscription {
+                    changed
+                }
+                """
+                    |> Encode.string
+              )
+            ]
+                |> Encode.object
+                |> Http.jsonBody
+        , expect =
+            Decode.string
+                |> Decode.at [ "data", "changed" ]
                 |> Http.expectJson
         , timeout = Nothing
         , withCredentials = False
