@@ -8,7 +8,6 @@ module Store
         , extractID
         , getCounter
         , getCounters
-        , subscribe
         , toCount
         , updateCounter
         )
@@ -69,7 +68,7 @@ createCounter count =
     Http.request
         { method = "POST"
         , headers = []
-        , url = "http://localhost:3000/graphql"
+        , url = "http://localhost:7700/graphql"
         , body =
             [ ( "query"
               , interpolate """
@@ -100,7 +99,7 @@ getCounters =
     Http.request
         { method = "POST"
         , headers = []
-        , url = "http://localhost:3000/graphql"
+        , url = "http://localhost:7700/graphql"
         , body =
             [ ( "query"
               , """
@@ -130,7 +129,7 @@ getCounter (ID coutnerId) =
     Http.request
         { method = "POST"
         , headers = []
-        , url = "http://localhost:3000/graphql"
+        , url = "http://localhost:7700/graphql"
         , body =
             [ ( "query"
               , interpolate """
@@ -161,7 +160,7 @@ updateCounter (ID coutnerId) fields =
     Http.request
         { method = "POST"
         , headers = []
-        , url = "http://localhost:3000/graphql"
+        , url = "http://localhost:7700/graphql"
         , body =
             [ ( "query"
               , interpolate """
@@ -192,7 +191,7 @@ deleteCounter (ID coutnerId) =
     Http.request
         { method = "POST"
         , headers = []
-        , url = "http://localhost:3000/graphql"
+        , url = "http://localhost:7700/graphql"
         , body =
             [ ( "query"
               , interpolate """
@@ -209,33 +208,6 @@ deleteCounter (ID coutnerId) =
         , expect =
             Decode.bool
                 |> Decode.at [ "data", "deleted" ]
-                |> Http.expectJson
-        , timeout = Nothing
-        , withCredentials = False
-        }
-
-
-subscribe : Http.Request String
-subscribe =
-    Http.request
-        { method = "POST"
-        , headers = []
-        , url = "http://localhost:3000/graphql"
-        , body =
-            [ ( "query"
-              , """
-                subscription Subscription {
-                    changed
-                }
-                """
-                    |> Encode.string
-              )
-            ]
-                |> Encode.object
-                |> Http.jsonBody
-        , expect =
-            Decode.string
-                |> Decode.at [ "data", "changed" ]
                 |> Http.expectJson
         , timeout = Nothing
         , withCredentials = False

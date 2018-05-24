@@ -1,4 +1,5 @@
 const uuid = require('uuid/v1');
+const cors = require('cors');
 const express = require('express');
 const { makeExecutableSchema } = require('graphql-tools');
 const { graphqlExpress, graphiqlExpress } = require('graphql-server-express');
@@ -27,7 +28,7 @@ class Counter {
 
 const typeDefs = `
     type Counter {
-        id: ID
+        id: ID!
         count: Int!
     }
 
@@ -43,7 +44,7 @@ const typeDefs = `
     type Mutation {
         createCounter(count: Int!): Counter!
         updateCounter(id: ID!, payload: ConterPayload): Counter
-        deleteCounter(id: ID): Boolean!
+        deleteCounter(id: ID!): Boolean!
     }
 
     type Subscription {
@@ -115,32 +116,22 @@ const resolvers = {
 };
 
 const schema = makeExecutableSchema({ typeDefs, resolvers });
-const PORT = 3000;
-const server = express();
+const PORT = 7700;
+const app = express();
 
-server.use("*", (req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
+app.use("*", cors('http://localhost:8000'));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use('/graphql', graphqlExpress({ schema }));
 
-    if (req.method === 'OPTIONS') {
-        res.sendStatus(200);
-    } else {
-        next();
-    }
-});
-
-server.use('/graphql', bodyParser.json(), graphqlExpress({
-    schema
-}));
-
-server.use('/graphiql', graphiqlExpress({
+app.use('/graphiql', graphiqlExpress({
     endpointURL: '/graphql',
     subscriptionsEndpoint: `ws://localhost:${PORT}/subscriptions`
 }));
 
-const ws = createServer(server);
+const server = createServer(app);
 
-ws.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`Running a GraphQL API server at http://localhost:${PORT}/graphql`);
 
     new SubscriptionServer({
@@ -148,7 +139,7 @@ ws.listen(PORT, () => {
         subscribe,
         schema
     }, {
-        server: ws,
+        server,
         path: '/subscriptions'
     })
 });

@@ -1,4 +1,4 @@
-module Main exposing (main)
+port module Main exposing (main)
 
 import Counter
 import GenericDict exposing (GenericDict)
@@ -6,8 +6,19 @@ import Html exposing (Html, button, div, form, h1, input, label, text)
 import Html.Attributes exposing (disabled, step, style, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Http
+import Json.Decode as Decode exposing (Value, decodeValue)
 import RemoteData exposing (RemoteData(..), WebData)
 import Store exposing (Counter, ID, extractID)
+
+
+-- P O R T S
+
+
+port send : String -> Cmd msg
+
+
+port subscribe : (Value -> msg) -> Sub msg
+
 
 
 -- M O D E L
@@ -30,6 +41,15 @@ initial =
       }
     , Cmd.batch
         [ Http.send LoadDone Store.getCounters
+        , send
+            """
+            subscription SubTest {
+                counterCreated {
+                    id
+                    count
+                }
+            }
+            """
         ]
     )
 
@@ -41,7 +61,7 @@ initial =
 type Msg
     = Load
     | LoadDone (Result Http.Error (List Counter))
-    | Subscribes (Result Http.Error String)
+    | Subscription Value
     | ChangeCount String
     | Create
     | CreateDone (Result Http.Error Counter)
@@ -61,10 +81,10 @@ update msg model =
             , Cmd.none
             )
 
-        Subscribes result ->
+        Subscription value ->
             let
                 log =
-                    Debug.log "Subscribes" (toString result)
+                    Debug.log "socket" value
             in
             ( model, Cmd.none )
 
@@ -141,6 +161,15 @@ update msg model =
                       }
                     , Cmd.none
                     )
+
+
+
+-- S U B S C R I P T I O N S
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    subscribe Subscription
 
 
 
@@ -234,6 +263,6 @@ main =
     Html.program
         { init = initial
         , update = update
-        , subscriptions = always Sub.none
+        , subscriptions = subscriptions
         , view = view
         }
