@@ -1,16 +1,37 @@
 import {
+    AWSAppSyncClient
+} from 'aws-appsync'
+import {
+    AUTH_TYPE
+} from 'aws-appsync/lib/link/auth-link'
+import gql from 'graphql-tag';
+import {
     Main
 } from './Main.elm';
-// import {
-//     SubscriptionClient
-// } from 'subscriptions-transport-ws';
 
 const app = Main.fullscreen();
+const client = new AWSAppSyncClient({
+    url: "https://p2z4whm3sre3bos2wnucgd2stq.appsync-api.eu-west-1.amazonaws.com/graphql",
+    region: 'eu-west-1',
+    auth: {
+        type: AUTH_TYPE.API_KEY,
+        apiKey: "da2-s6xhkxeykbdqjeu6qjwb24n4uy"
+    }
+});
 
-// const socket = new SubscriptionClient('ws://localhost:7700/subscriptions', {
-//     reconnect: true
-// });
+app.ports.send.subscribe(query => {
+    client
+        .subscribe({ query: gql(query) })
+        .subscribe({
+            next: response => {
+                console.log(response);
+            },
+            complete: (a, b, c) => {
+                debugger;
+            },
+            error: err => {
+                console.err(err);
+            }
+        });
+});
 
-// app.ports.send.subscribe(query => {
-//     socket.request({ query }).subscribe(app.ports.subscribe.send);
-// });

@@ -44,7 +44,7 @@ initial =
         , send
             """
             subscription SubTest {
-                counterCreated {
+                onCreateCounter {
                     id
                     count
                 }

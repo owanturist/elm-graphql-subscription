@@ -25,8 +25,7 @@ endpoint =
 
 headers : List Http.Header
 headers =
-    [ Http.header "Content-Type" "application/graphql"
-    , Http.header "X-Api-Key" "da2-s6xhkxeykbdqjeu6qjwb24n4uy"
+    [ Http.header "X-Api-Key" "da2-s6xhkxeykbdqjeu6qjwb24n4uy"
     ]
 
 
@@ -210,7 +209,10 @@ deleteCounter (ID coutnerId) =
             [ ( "query"
               , interpolate """
                     mutation DeleteCounter {
-                        deleted: deleteCounter(id: "{0}")
+                        deleted: deleteCounter(id: "{0}") {
+                            id
+                            count
+                        }
                     }
                     """
                     [ coutnerId ]
@@ -221,7 +223,7 @@ deleteCounter (ID coutnerId) =
                 |> Http.jsonBody
         , expect =
             Decode.succeed ()
-                |> Decode.field "data"
+                |> Decode.at [ "data", "deleted" ]
                 |> Http.expectJson
         , timeout = Nothing
         , withCredentials = False

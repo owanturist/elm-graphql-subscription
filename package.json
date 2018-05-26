@@ -1,11 +1,11 @@
 {
   "name": "elm-graphql-subscription",
   "version": "1.0.0",
-  "description": "",
+  "description": "The trying to implement Elm application with AWS AppSync",
   "main": "index.js",
   "scripts": {
     "postinstall": "elm package install -y",
-    "dev": "webpack-dev-server --hot --inline --port=8000"
+    "dev": "webpack-dev-server --hot --inline --port=3000"
   },
   "repository": {
     "type": "git",
@@ -18,7 +18,8 @@
   },
   "homepage": "https://github.com/owanturist/elm-graphql-subscription#readme",
   "dependencies": {
-    "subscriptions-transport-ws": "^0.9.9"
+    "aws-appsync": "^1.0.22",
+    "graphql-tag": "^2.9.2"
   },
   "devDependencies": {
     "elm": "^0.18.0",
