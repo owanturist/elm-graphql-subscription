@@ -119,9 +119,6 @@ update msg model =
                     |> Maybe.withDefault Counter.initial
                     |> Counter.update msg counterId
             of
-                Counter.Idle ->
-                    ( model, Cmd.none )
-
                 Counter.Changed nextCounter cmd ->
                     ( { model | counters = GenericDict.insert counterId nextCounter model.counters }
                     , Cmd.map (CounterMsg counterId) cmd

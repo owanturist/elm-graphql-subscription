@@ -18,6 +18,18 @@ import Json.Encode as Encode exposing (Value, encode)
 import String.Interpolate exposing (interpolate)
 
 
+endpoint : String
+endpoint =
+    "https://p2z4whm3sre3bos2wnucgd2stq.appsync-api.eu-west-1.amazonaws.com/graphql"
+
+
+headers : List Http.Header
+headers =
+    [ Http.header "Content-Type" "application/graphql"
+    , Http.header "X-Api-Key" "da2-s6xhkxeykbdqjeu6qjwb24n4uy"
+    ]
+
+
 type ID supported
     = ID String
 
@@ -67,8 +79,8 @@ createCounter : Int -> Http.Request Counter
 createCounter count =
     Http.request
         { method = "POST"
-        , headers = []
-        , url = "http://localhost:7700/graphql"
+        , headers = headers
+        , url = endpoint
         , body =
             [ ( "query"
               , interpolate """
@@ -98,15 +110,17 @@ getCounters : Http.Request (List Counter)
 getCounters =
     Http.request
         { method = "POST"
-        , headers = []
-        , url = "http://localhost:7700/graphql"
+        , headers = headers
+        , url = endpoint
         , body =
             [ ( "query"
               , """
-                    query GetCounters {
-                        counters: getAllCounters {
-                            id
-                            count
+                    query ListCounters {
+                        counters: listCounters {
+                            items {
+                                id
+                                count
+                            }
                         }
                     }
                     """
@@ -117,7 +131,7 @@ getCounters =
                 |> Http.jsonBody
         , expect =
             Decode.list counterDecoder
-                |> Decode.at [ "data", "counters" ]
+                |> Decode.at [ "data", "counters", "items" ]
                 |> Http.expectJson
         , timeout = Nothing
         , withCredentials = False
@@ -128,8 +142,8 @@ getCounter : ID { counter : () } -> Http.Request Counter
 getCounter (ID coutnerId) =
     Http.request
         { method = "POST"
-        , headers = []
-        , url = "http://localhost:7700/graphql"
+        , headers = headers
+        , url = endpoint
         , body =
             [ ( "query"
               , interpolate """
@@ -159,13 +173,13 @@ updateCounter : ID { counter : () } -> List (Field { toCount : () }) -> Http.Req
 updateCounter (ID coutnerId) fields =
     Http.request
         { method = "POST"
-        , headers = []
-        , url = "http://localhost:7700/graphql"
+        , headers = headers
+        , url = endpoint
         , body =
             [ ( "query"
               , interpolate """
                     mutation UpdateCounter {
-                        counter: updateCounter(id: "{0}", payload: {1}) {
+                        counter: updateCounter(id: "{0}", input: {1}) {
                             id
                             count
                         }
@@ -186,12 +200,12 @@ updateCounter (ID coutnerId) fields =
         }
 
 
-deleteCounter : ID { counter : () } -> Http.Request Bool
+deleteCounter : ID { counter : () } -> Http.Request ()
 deleteCounter (ID coutnerId) =
     Http.request
         { method = "POST"
-        , headers = []
-        , url = "http://localhost:7700/graphql"
+        , headers = headers
+        , url = endpoint
         , body =
             [ ( "query"
               , interpolate """
@@ -206,8 +220,8 @@ deleteCounter (ID coutnerId) =
                 |> Encode.object
                 |> Http.jsonBody
         , expect =
-            Decode.bool
-                |> Decode.at [ "data", "deleted" ]
+            Decode.succeed ()
+                |> Decode.field "data"
                 |> Http.expectJson
         , timeout = Nothing
         , withCredentials = False

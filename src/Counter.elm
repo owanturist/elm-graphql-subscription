@@ -32,12 +32,11 @@ type Msg
     = Update Int
     | UpdateDone (Result Http.Error Counter)
     | Delete
-    | DeleteDone (Result Http.Error Bool)
+    | DeleteDone (Result Http.Error ())
 
 
 type Stage
-    = Idle
-    | Changed Model (Cmd Msg)
+    = Changed Model (Cmd Msg)
     | Updated Counter
     | Deleted
 
@@ -70,10 +69,7 @@ update msg counterId (Model state) =
                 (Model { state | status = Failure err })
                 Cmd.none
 
-        DeleteDone (Ok False) ->
-            Idle
-
-        DeleteDone (Ok True) ->
+        DeleteDone (Ok ()) ->
             Deleted
 
 
