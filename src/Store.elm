@@ -84,7 +84,7 @@ createCounter count =
             [ ( "query"
               , interpolate """
                     mutation CreateCounter {
-                        counter: createCounter(count: {0}) {
+                        createCounter(count: {0}) {
                             id
                             count
                         }
@@ -98,7 +98,7 @@ createCounter count =
                 |> Http.jsonBody
         , expect =
             counterDecoder
-                |> Decode.at [ "data", "counter" ]
+                |> Decode.at [ "data", "createCounter" ]
                 |> Http.expectJson
         , timeout = Nothing
         , withCredentials = False
@@ -115,7 +115,7 @@ getCounters =
             [ ( "query"
               , """
                     query ListCounters {
-                        counters: listCounters {
+                        listCounters {
                             items {
                                 id
                                 count
@@ -130,7 +130,7 @@ getCounters =
                 |> Http.jsonBody
         , expect =
             Decode.list counterDecoder
-                |> Decode.at [ "data", "counters", "items" ]
+                |> Decode.at [ "data", "listCounters", "items" ]
                 |> Http.expectJson
         , timeout = Nothing
         , withCredentials = False
@@ -147,7 +147,7 @@ getCounter (ID coutnerId) =
             [ ( "query"
               , interpolate """
                     query GetCounter {
-                        counter: getCounter(id: "{0}") {
+                        getCounter(id: "{0}") {
                             id
                             count
                         }
@@ -161,7 +161,7 @@ getCounter (ID coutnerId) =
                 |> Http.jsonBody
         , expect =
             counterDecoder
-                |> Decode.at [ "data", "counter" ]
+                |> Decode.at [ "data", "getCounter" ]
                 |> Http.expectJson
         , timeout = Nothing
         , withCredentials = False
@@ -178,7 +178,7 @@ updateCounter (ID coutnerId) fields =
             [ ( "query"
               , interpolate """
                     mutation UpdateCounter {
-                        counter: updateCounter(id: "{0}", input: {1}) {
+                        updateCounter(id: "{0}", input: {1}) {
                             id
                             count
                         }
@@ -192,7 +192,7 @@ updateCounter (ID coutnerId) fields =
                 |> Http.jsonBody
         , expect =
             counterDecoder
-                |> Decode.at [ "data", "counter" ]
+                |> Decode.at [ "data", "updateCounter" ]
                 |> Http.expectJson
         , timeout = Nothing
         , withCredentials = False
@@ -209,7 +209,7 @@ deleteCounter (ID coutnerId) =
             [ ( "query"
               , interpolate """
                     mutation DeleteCounter {
-                        deleted: deleteCounter(id: "{0}") {
+                        deleteCounter(id: "{0}") {
                             id
                             count
                         }
@@ -223,7 +223,7 @@ deleteCounter (ID coutnerId) =
                 |> Http.jsonBody
         , expect =
             Decode.succeed ()
-                |> Decode.at [ "data", "deleted" ]
+                |> Decode.at [ "data", "deleteCounter" ]
                 |> Http.expectJson
         , timeout = Nothing
         , withCredentials = False
