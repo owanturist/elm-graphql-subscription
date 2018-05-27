@@ -5,7 +5,7 @@ import Html.Attributes exposing (disabled, type_)
 import Html.Events exposing (onClick)
 import Http
 import RemoteData exposing (RemoteData(..), WebData)
-import Store exposing (Counter, ID)
+import Store exposing (Counter)
 
 
 -- M O D E L
@@ -41,13 +41,13 @@ type Stage
     | Deleted
 
 
-update : Msg -> ID { counter : () } -> Model -> Stage
-update msg counterId (Model state) =
+update : Msg -> Counter -> Model -> Stage
+update msg counter (Model state) =
     case msg of
         Update count ->
             [ Store.toCount count
             ]
-                |> Store.updateCounter counterId
+                |> Store.updateCounter counter.id counter.version
                 |> Http.send UpdateDone
                 |> Changed (Model { state | status = Loading })
 
@@ -60,7 +60,7 @@ update msg counterId (Model state) =
             Updated counter
 
         Delete ->
-            Store.deleteCounter counterId
+            Store.deleteCounter counter.id
                 |> Http.send DeleteDone
                 |> Changed (Model { state | status = Loading })
 

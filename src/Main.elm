@@ -65,7 +65,7 @@ type Msg
     | ChangeCount String
     | Create
     | CreateDone (Result Http.Error Counter)
-    | CounterMsg (ID { counter : () }) Counter.Msg
+    | CounterMsg Counter Counter.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -113,15 +113,15 @@ update msg model =
             , Cmd.none
             )
 
-        CounterMsg counterId msg ->
+        CounterMsg counter msg ->
             case
-                GenericDict.get counterId model.counters
+                GenericDict.get counter.id model.counters
                     |> Maybe.withDefault Counter.initial
-                    |> Counter.update msg counterId
+                    |> Counter.update msg counter
             of
                 Counter.Changed nextCounter cmd ->
-                    ( { model | counters = GenericDict.insert counterId nextCounter model.counters }
-                    , Cmd.map (CounterMsg counterId) cmd
+                    ( { model | counters = GenericDict.insert counter.id nextCounter model.counters }
+                    , Cmd.map (CounterMsg counter) cmd
                     )
 
                 Counter.Updated nextEntity ->
@@ -130,7 +130,7 @@ update msg model =
                             RemoteData.map
                                 (List.map
                                     (\entity ->
-                                        if entity.id == counterId then
+                                        if entity.id == counter.id then
                                             nextEntity
                                         else
                                             entity
@@ -140,7 +140,7 @@ update msg model =
                     in
                     ( { model
                         | entities = nextEntities
-                        , counters = GenericDict.remove counterId model.counters
+                        , counters = GenericDict.remove counter.id model.counters
                       }
                     , Cmd.none
                     )
@@ -149,12 +149,12 @@ update msg model =
                     let
                         nextEntities =
                             RemoteData.map
-                                (List.filter ((/=) counterId << .id))
+                                (List.filter ((/=) counter.id << .id))
                                 model.entities
                     in
                     ( { model
                         | entities = nextEntities
-                        , counters = GenericDict.remove counterId model.counters
+                        , counters = GenericDict.remove counter.id model.counters
                       }
                     , Cmd.none
                     )
@@ -246,7 +246,7 @@ view model =
                             GenericDict.get entity.id model.counters
                                 |> Maybe.withDefault Counter.initial
                                 |> Counter.view entity
-                                |> Html.map (CounterMsg entity.id)
+                                |> Html.map (CounterMsg entity)
                                 |> List.singleton
                                 |> div [ style [ ( "margin-top", "10px" ) ] ]
                         )

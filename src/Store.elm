@@ -3,6 +3,7 @@ module Store
         ( Counter
         , Field
         , ID
+        , Version
         , createCounter
         , deleteCounter
         , extractID
@@ -33,6 +34,25 @@ type ID supported
     = ID String
 
 
+extractID : ID supported -> String
+extractID (ID id) =
+    id
+
+
+idDecoder : Decoder (ID supported)
+idDecoder =
+    Decode.map ID Decode.string
+
+
+type Version supported
+    = Version Int
+
+
+versionDecoder : Decoder (Version supported)
+versionDecoder =
+    Decode.map Version Decode.int
+
+
 type Field supported
     = Field String Value
 
@@ -51,27 +71,19 @@ toCount =
     Field "count" << Encode.int
 
 
-extractID : ID supported -> String
-extractID (ID id) =
-    id
-
-
-idDecoder : Decoder (ID supported)
-idDecoder =
-    Decode.map ID Decode.string
-
-
 type alias Counter =
     { id : ID { counter : () }
     , count : Int
+    , version : Version { counter : () }
     }
 
 
 counterDecoder : Decoder Counter
 counterDecoder =
-    Decode.map2 Counter
+    Decode.map3 Counter
         (Decode.field "id" idDecoder)
         (Decode.field "count" Decode.int)
+        (Decode.field "version" versionDecoder)
 
 
 createCounter : Int -> Http.Request Counter
@@ -87,6 +99,7 @@ createCounter count =
                         createCounter(count: {0}) {
                             id
                             count
+                            version
                         }
                     }
                     """
@@ -119,6 +132,7 @@ getCounters =
                             items {
                                 id
                                 count
+                                version
                             }
                         }
                     }
@@ -150,6 +164,7 @@ getCounter (ID coutnerId) =
                         getCounter(id: "{0}") {
                             id
                             count
+                            version
                         }
                     }
                     """
@@ -168,8 +183,8 @@ getCounter (ID coutnerId) =
         }
 
 
-updateCounter : ID { counter : () } -> List (Field { toCount : () }) -> Http.Request Counter
-updateCounter (ID coutnerId) fields =
+updateCounter : ID { counter : () } -> Version { counter : () } -> List (Field { toCount : () }) -> Http.Request Counter
+updateCounter (ID coutnerId) (Version version) fields =
     Http.request
         { method = "POST"
         , headers = headers
@@ -178,13 +193,14 @@ updateCounter (ID coutnerId) fields =
             [ ( "query"
               , interpolate """
                     mutation UpdateCounter {
-                        updateCounter(id: "{0}", input: {1}) {
+                        updateCounter(id: "{0}", version: {1}, input: {2}) {
                             id
                             count
+                            version
                         }
                     }
                     """
-                    [ coutnerId, fieldsToPayload fields ]
+                    [ coutnerId, toString version, fieldsToPayload fields ]
                     |> Encode.string
               )
             ]
