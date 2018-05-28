@@ -43,10 +43,31 @@ initial =
         [ Http.send LoadDone Store.getCounters
         , send
             """
-            subscription SubTest {
+            subscription OnCreateCounter {
                 onCreateCounter {
                     id
                     count
+                    version
+                }
+            }
+            """
+        , send
+            """
+            subscription OnUpdateCounter {
+                onUpdateCounter {
+                    id
+                    count
+                    version
+                }
+            }
+            """
+        , send
+            """
+            subscription OnDeleteCounter {
+                onDeleteCounter {
+                    id
+                    count
+                    version
                 }
             }
             """
@@ -82,11 +103,47 @@ update msg model =
             )
 
         Subscription value ->
-            let
-                log =
-                    Debug.log "socket" value
-            in
-            ( model, Cmd.none )
+            ( case decodeValue Store.counterActionsDecoder value of
+                Ok (Store.Created newEntity) ->
+                    case List.filter ((==) newEntity.id << .id) (RemoteData.withDefault [] model.entities) of
+                        [ _ ] ->
+                            model
+
+                        _ ->
+                            { model | entities = RemoteData.map ((::) newEntity) model.entities }
+
+                Ok (Store.Updated nextEntity) ->
+                    let
+                        nextEntities =
+                            RemoteData.map
+                                (List.map
+                                    (\entity ->
+                                        if nextEntity.id == entity.id && nextEntity.version /= entity.version then
+                                            nextEntity
+                                        else
+                                            entity
+                                    )
+                                )
+                                model.entities
+                    in
+                    { model | entities = nextEntities }
+
+                Ok (Store.Deleted entity) ->
+                    let
+                        nextEntities =
+                            RemoteData.map
+                                (List.filter ((/=) entity.id << .id))
+                                model.entities
+                    in
+                    { model
+                        | entities = nextEntities
+                        , counters = GenericDict.remove entity.id model.counters
+                    }
+
+                Err _ ->
+                    model
+            , Cmd.none
+            )
 
         ChangeCount nextCount ->
             ( { model | count = Result.withDefault 0 (String.toInt nextCount) }

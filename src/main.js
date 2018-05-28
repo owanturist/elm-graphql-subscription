@@ -23,12 +23,7 @@ app.ports.send.subscribe(query => {
     client
         .subscribe({ query: gql(query) })
         .subscribe({
-            next: response => {
-                console.log(response);
-            },
-            complete: (a, b, c) => {
-                debugger;
-            },
+            next: app.ports.subscribe.send,
             error: err => {
                 console.err(err);
             }

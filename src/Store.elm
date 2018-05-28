@@ -1,9 +1,11 @@
 module Store
     exposing
-        ( Counter
+        ( Action(..)
+        , Counter
         , Field
         , ID
         , Version
+        , counterActionsDecoder
         , createCounter
         , deleteCounter
         , extractID
@@ -17,6 +19,12 @@ import Http
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode exposing (Value, encode)
 import String.Interpolate exposing (interpolate)
+
+
+type Action entity
+    = Created entity
+    | Updated entity
+    | Deleted entity
 
 
 endpoint : String
@@ -84,6 +92,16 @@ counterDecoder =
         (Decode.field "id" idDecoder)
         (Decode.field "count" Decode.int)
         (Decode.field "version" versionDecoder)
+
+
+counterActionsDecoder : Decoder (Action Counter)
+counterActionsDecoder =
+    [ Decode.map Created (Decode.field "onCreateCounter" counterDecoder)
+    , Decode.map Updated (Decode.field "onUpdateCounter" counterDecoder)
+    , Decode.map Deleted (Decode.field "onDeleteCounter" counterDecoder)
+    ]
+        |> Decode.oneOf
+        |> Decode.field "data"
 
 
 createCounter : Int -> Http.Request Counter
@@ -228,6 +246,7 @@ deleteCounter (ID coutnerId) =
                         deleteCounter(id: "{0}") {
                             id
                             count
+                            version
                         }
                     }
                     """
